@@ -3,6 +3,19 @@
 session_start();
 require_once "config/db.php";
 
+if (isset($_GET['delete'])) {
+    $delete_id = $_GET['delete'];
+    $deletestmt = $conn->query("DELETE FROM user WHERE id = $delete_id");
+    $deletestmt->execute();
+
+    if ($deletestmt) {
+        echo "<script>alert('Data has been deleted successfully');</script>";
+        $_SESSION['success'] = "Data has been deleted succesfully";
+        header("refresh:1; url=index.php");
+    }
+    
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -113,42 +126,122 @@ require_once "config/db.php";
 
     <div class="container mt-5">
         <!-- Table data -->
-    <table class="table mt-5 table-bordered">
-        <thead class="table-primary">
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Firstname</th>
-                <th scope="col">Lastname</th>
-                <th scope="col">Classyear</th>
-                <th scope="col">Birthday</th>
-                <th scope="col">Image</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $sm = $conn->query("SELECT * FROM user");
-            $sm->execute();
-            $users = $sm->fetchAll();
+        <table class="table mt-5 table-bordered">
+            <thead class="table-primary">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Firstname</th>
+                    <th scope="col">Lastname</th>
+                    <th scope="col">Classyear</th>
+                    <th scope="col">Birthday</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $sm = $conn->query("SELECT * FROM user");
+                $sm->execute();
+                $users = $sm->fetchAll();
 
-            if (!$users) {
-                echo "<tr><td colspan='6' class='text-center'>No User data found</td></tr>";
-            } else {
-                foreach ($users as $user) {
-                    ?>
-                    <tr>
-                        <th scope="row"><?= $user['id'];?></th>
-                        <td><?= $user['firstname'];?></td>
-                        <td><?= $user['lastname'];?></td>
-                        <td><?= $user['classyear'];?></td>
-                        <td><?= $user['birthday'];?></td>
-                        <td width="150px"> <img width="100%" src="uploads/<?= $user['img'];?>"</td>
-                    </tr>
-                <?php }
-            }
-            ?>
-        </tbody>
-    </table>
+                if (!$users) {
+                    echo "<tr><td colspan='6' class='text-center'>No User data found</td></tr>";
+                } else {
+                    foreach ($users as $user) {
+                        ?>
+                        <tr>
+                            <th scope="row">
+                                <?= $user['id']; ?>
+                            </th>
+                            <td>
+                                <?= $user['firstname']; ?>
+                            </td>
+                            <td>
+                                <?= $user['lastname']; ?>
+                            </td>
+                            <td>
+                                <?= $user['classyear']; ?>
+                            </td>
+                            <td>
+                                <?= $user['birthday']; ?>
+                            </td>
+                            <td width="150px"> <img width="100%" src="uploads/<?= $user['img']; ?>" </td>
+                            <td>
+                            <a href="edit.php?id=<?=$user['id']; ?>" class="btn btn-warning">Edit</a>
+                                <a href="?delete=<?=$user['id']; ?>" class="btn btn-danger"
+                                    onclick="return confirm('Are you sure you want to delete?')">Delete</a>
+                            </td>
+                        </tr>
+                    <?php }
+                }
+                ?>
+            </tbody>
+        </table>
     </div>
+
+    <!-- Modal edit user -->
+    <!-- <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="edit.php" method="post" enctype="multipart/form-data">
+                        <div class="mb-3 row g-2">
+                            <input type="hidden" class="form-control" name="id"
+                                value="" readonly>
+                            <input type="text" class="form-control" name="id" value="" readonly>
+                            <div class="col-md">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="firstname"
+                                        value="" required>
+                                    <label for="firstname" class="col-form-label">First Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="lastname"
+                                        value="" placeholder="" required>
+                                    <label for="lastname" class="col-form-label">Last Name</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-floating">
+                            <select class="form-select" id="floatingSelect" aria-label="Floating label select example"
+                                name="classyear" value="" required>
+                                <option selected>Current Year: <>
+                                </option>
+                                <option value="1">Year 1</option>
+                                <option value="2">Year 2</option>
+                                <option value="3">Year 3</option>
+                                <option value="4">Year 4</option>
+                            </select>
+                            <label for="classyear" class="col-form-label">Year</label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="birthday" class="col-form-label">Brithday</label>
+                            <input type="date" class="form-control" name="birthday" value="" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="img" class="col-form-label">Picture</label>
+                            <input type="hidden" class="form-control" name="img2" value="<?= $user['img'] ?>" required>
+                            <input type="file" class="form-control" id="imginput" name="img">
+                            <img width=100% src="uploads/<?= $user['img'] ?>" id="previewimg" alt="">
+                        </div>
+                        <img width=85% id="previewimg" alt="" class="rounded mx-auto d-block mb-3">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" name="update" class="btn btn-success">Update</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div> -->
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
