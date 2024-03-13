@@ -1,12 +1,11 @@
 <?php
-
-
     session_start();
     require_once "config/db.php";
     if (isset($_POST['submit'])) {
         $firstname = $_POST['firstname'];
         $lastname = $_POST['lastname'];
-        $position = $_POST['position'];
+        $classyear = $_POST['classyear'];
+        $birthday = $_POST['birthday'];
         $img = $_FILES['img'];
 
         $allow = array('jpg','jpeg','png');
@@ -18,10 +17,11 @@
         if (in_array($fileActExt, $allow)){
             if ($img['size'] > 0 && $img['error'] == 0) {
                 if (move_uploaded_file($img['tmp_name'], $filePath))
-                    $sql = $conn->prepare("INSERT INTO user(firstname, lastname, position, img) VALUES(:firstname, :lastname, :position, :img)");
+                    $sql = $conn->prepare("INSERT INTO user(firstname, lastname, classyear, birthday, img) VALUES(:firstname, :lastname, :classyear, :birthday, :img)");
                     $sql->bindParam(":firstname",$firstname);
                     $sql->bindParam(":lastname",$lastname);
-                    $sql->bindParam(":position",$position);
+                    $sql->bindParam(":classyear",$classyear);
+                    $sql->bindParam(":birthday",$birthday);
                     $sql->bindParam(":img",$fileNew);
                     $sql->execute();
 
